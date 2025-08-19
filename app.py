@@ -84,21 +84,23 @@ def load_local_dataset():
     try:
         df = pd.read_csv('SpotifyFeatures.csv')
         
-        st.write(f"CSV dosyasından okunan ilk satır sayısı: {len(df)}")
-        
         model_features_list = [
             'danceability', 'energy', 'key', 'loudness', 'mode', 
             'speechiness', 'acousticness', 'instrumentalness', 
             'liveness', 'valence', 'tempo', 'duration_ms', 'time_signature'
         ]
+        
         df['track_name'] = df['track_name'].astype(str).str.strip()
         df['artist_name'] = df['artist_name'].astype(str).str.strip()
+        
         for col in model_features_list:
             df[col] = pd.to_numeric(df[col], errors='coerce')
         
-        df.dropna(subset=model_features_list, inplace=True)
-        st.write(f"Eksik veriler temizlendikten sonra kalan satır sayısı: {len(df)}")
+        st.subheader("Sütunlardaki Eksik Veri Sayıları (NaN)")
+        missing_values = df[model_features_list].isnull().sum()
         
+        st.dataframe(missing_values[missing_values > 0].sort_values(ascending=False))
+
         df.reset_index(drop=True, inplace=True)
         return df
     except FileNotFoundError:
