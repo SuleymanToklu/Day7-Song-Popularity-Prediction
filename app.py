@@ -20,6 +20,7 @@ texts = {
     'tab2_title': {'TR': "🎯 Proje Detayları", 'EN': "🎯 Project Details"},
     'tab1_header': {'TR': "Spotify'da Şarkı Arayarak Popülerlik Tahmin Et", 'EN': "Predict Popularity by Searching on Spotify"},
     'suggestions_header': {'TR': "✨ Şarkı Önerileri", 'EN': "✨ Song Suggestions"},
+    'refresh_button': {'TR': "Yenile", 'EN': "Refresh"},
     'search_form_label': {'TR': "Veya Yeni Bir Şarkı Ara", 'EN': "Or Search for a New Song"},
     'search_button': {'TR': 'Ara', 'EN': 'Search'},
     'search_results_header': {'TR': "Arama Sonuçları", 'EN': "Search Results"},
@@ -67,7 +68,7 @@ def load_local_dataset():
 model, model_features = load_model_and_features()
 local_df = load_local_dataset()
 
-col_title, col_lang = st.columns([5, 1])
+col_title, col_lang = st.columns([6, 1])
 with col_title:
     st.title(texts['main_title'][lang])
 with col_lang:
@@ -143,7 +144,8 @@ with tab1:
 
             if not match.empty:
                 song_features = match.iloc[0]
-                input_df = pd.DataFrame([song_features[model_features]])
+                input_df = pd.DataFrame([song_features])
+                input_df = input_df[model_features] # Ensure correct column order
                 prediction = model.predict(input_df)
                 popularity_score = int(prediction[0])
 
@@ -161,7 +163,14 @@ with tab1:
                 st.session_state.selected_track = None
                 st.rerun()
     else:
-        st.subheader(texts['suggestions_header'][lang])
+        col_header, col_button = st.columns([4, 1])
+        with col_header:
+            st.subheader(texts['suggestions_header'][lang])
+        with col_button:
+            if st.button(texts['refresh_button'][lang]):
+                st.session_state.suggestions = local_df.sample(5)
+                st.rerun()
+
         suggestions = st.session_state.suggestions
         for i, row in suggestions.iterrows():
             col1, col2 = st.columns([4, 1])
