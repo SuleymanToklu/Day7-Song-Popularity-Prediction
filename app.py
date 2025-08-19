@@ -16,12 +16,11 @@ texts = {
     'language_label': {'TR': 'Dil', 'EN': 'Language'},
     'api_status_success': {'TR': "Spotify API bağlantısı başarılı!", 'EN': "Spotify API connection successful!"},
     'api_status_error': {'TR': "API bağlantısı kurulamadı. Arama özelliği çalışmayabilir.", 'EN': "Could not connect to API. Search feature may not work."},
-    'tab1_title': {'TR': "🎤 Spotify'dan Şarkı Ara", 'EN': "🎤 Search Song on Spotify"},
+    'tab1_title': {'TR': "🎤 Tahmin Aracı", 'EN': "🎤 Predictor"},
     'tab2_title': {'TR': "🎯 Proje Detayları", 'EN': "🎯 Project Details"},
-    'tab1_header': {'TR': "Spotify'da Şarkı Arayarak Popülerlik Tahmin Et", 'EN': "Predict Popularity by Searching on Spotify"},
-    'suggestions_header': {'TR': "✨ Şarkı Önerileri", 'EN': "✨ Song Suggestions"},
+    'suggestions_header': {'TR': "✨ Veri Setinden Öneriler", 'EN': "✨ Suggestions from Dataset"},
     'refresh_button': {'TR': "Yenile", 'EN': "Refresh"},
-    'search_form_label': {'TR': "Veya Yeni Bir Şarkı Ara", 'EN': "Or Search for a New Song"},
+    'search_form_label': {'TR': "Veya Spotify'da Yeni Bir Şarkı Ara", 'EN': "Or Search for a New Song on Spotify"},
     'search_button': {'TR': 'Ara', 'EN': 'Search'},
     'search_results_header': {'TR': "Arama Sonuçları", 'EN': "Search Results"},
     'artist_label': {'TR': "Sanatçı", 'EN': "Artist"},
@@ -31,10 +30,32 @@ texts = {
     'metric_real': {'TR': "Gerçek Spotify Popülerlik Puanı", 'EN': "Actual Spotify Popularity Score"},
     'not_in_dataset_warning': {'TR': "Bu şarkı modelimizin eğitildiği veri setinde bulunamadı. Bu yüzden özel bir tahmin yapılamıyor.", 'EN': "This song was not found in the dataset our model was trained on. Therefore, a custom prediction cannot be made."},
     'close_button': {'TR': 'Kapat', 'EN': 'Close'},
-    'tab2_header': {'TR': "Projenin Amacı ve Teknik Detaylar", 'EN': "Project Goal and Technical Details"},
-    'tab2_text': {'TR': """Bu projenin amacı, bir şarkının Spotify'daki popülerliğini, Spotify API tarafından sağlanan ses özelliklerine göre tahmin etmektir. \n- **Model:** `XGBoost Regressor`\n- **Veri Seti:** Spotify Features (Kaggle) & Live Spotify API""", 'EN': """The goal of this project is to predict the popularity of a song on Spotify based on its audio features provided by the Spotify API. \n- **Model:** `XGBoost Regressor`\n- **Dataset:** Spotify Features (Kaggle) & Live Spotify API"""},
-    'expander_title': {'TR': "🎵 Ses Özellikleri Ne Anlama Geliyor?", 'EN': "🎵 What Do the Audio Features Mean?"},
-    'expander_text': {'TR': """- **Dans Edilebilirlik (Danceability):** Dans etmeye ne kadar uygun olduğunu açıklar.\n- **Enerji (Energy):** Yoğunluk ve aktivitenin algısal bir ölçüsüdür.\n- **Gürültü (Loudness):** Genel ses yüksekliği (desibel - dB).\n- **Akustiklik (Acousticness):** Parçanın akustik olup olmadığının bir ölçüsü.\n- **Enstrümantallik (Instrumentalness):** Parçanın vokal içerip içermediğini tahmin eder.\n- **Pozitiflik (Valence):** Müziksel pozitifliği (mutlu, neşeli) açıklar.\n- **Tempo:** Dakikadaki vuruş sayısı (BPM).""", 'EN': """- **Danceability:** Describes how suitable a track is for dancing.\n- **Energy:** A perceptual measure of intensity and activity.\n- **Loudness:** The overall loudness of a track in decibels (dB).\n- **Acousticness:** A measure of whether the track is acoustic.\n- **Instrumentalness:** Predicts whether a track contains no vocals.\n- **Valence:** Describes the musical positiveness (e.g., happy, cheerful) conveyed by a track.\n- **Tempo:** The overall estimated tempo of a track in beats per minute (BPM)."""}
+    'tab2_summary_header': {'TR': "Proje Özeti", 'EN': "Project Summary"},
+    'tab2_summary_text': {'TR': "Bu uygulama, bir şarkının ses özelliklerini (dans edilebilirlik, enerji, tempo vb.) kullanarak o şarkının Spotify'daki popülerlik puanını (0-100 arası) tahmin etmek için geliştirilmiş bir makine öğrenmesi projesidir. Kullanıcılar, veri setinden önerilen şarkıları analiz edebilir veya Spotify API aracılığıyla yeni şarkılar arayarak hem modelin tahminini hem de şarkının gerçek popülerlik puanını karşılaştırabilir.", 'EN': "This application is a machine learning project developed to predict a song's popularity score (0-100) on Spotify using its audio features (danceability, energy, tempo, etc.). Users can analyze suggested songs from the dataset or search for new songs via the Spotify API to compare the model's prediction with the song's actual popularity score."},
+    'tab2_tech_header': {'TR': "Teknik Detaylar", 'EN': "Technical Details"},
+    'tab2_tech_text': {'TR': """
+- **Model:** XGBoost Regressor
+- **Kütüphaneler:** Streamlit, Pandas, Scikit-learn, XGBoost, Requests
+- **Veri Kaynağı:** [Ultimate Spotify Tracks DB (Kaggle)](https://www.kaggle.com/datasets/zaheenhamidani/ultimate-spotify-tracks-db) & Canlı Spotify Web API""", 'EN': """
+- **Model:** XGBoost Regressor
+- **Libraries:** Streamlit, Pandas, Scikit-learn, XGBoost, Requests
+- **Data Source:** [Ultimate Spotify Tracks DB (Kaggle)](https://www.kaggle.com/datasets/zaheenhamidani/ultimate-spotify-tracks-db) & Live Spotify Web API"""},
+    'tab2_how_header': {'TR': "Nasıl Çalışır?", 'EN': "How It Works?"},
+    'tab2_how_text': {'TR': """
+1.  **Model Eğitimi:** Proje, `train_model.py` scripti ile `SpotifyFeatures.csv` veri setini kullanarak bir XGBoost regresyon modelini eğitir ve `model.pkl` olarak kaydeder.
+2.  **Veri Yükleme:** Streamlit uygulaması, bu eğitilmiş modeli ve tahmin için kullanılacak yerel veri setini başlangıçta yükler.
+3.  **Tahminleme:**
+    - **Önerilen Şarkılar:** Veri setinden rastgele seçilen şarkıların özellikleri doğrudan modele verilir.
+    - **API Araması:** Spotify API'den aranan bir şarkı, önce yerel veri setinde aranır. Eşleşme bulunursa, o şarkının özellikleri tahmin için kullanılır.
+4.  **Sonuç Gösterimi:** Modelin tahmini ve şarkının Spotify'daki gerçek popülerlik puanı karşılaştırmalı olarak kullanıcıya sunulur.""", 'EN': """
+1.  **Model Training:** The project trains an XGBoost regression model using the `SpotifyFeatures.csv` dataset with the `train_model.py` script and saves it as `model.pkl`.
+2.  **Data Loading:** The Streamlit application loads this pre-trained model and the local dataset for predictions at startup.
+3.  **Prediction:**
+    - **Suggested Songs:** Features of randomly selected songs from the dataset are directly fed into the model.
+    - **API Search:** A song searched via the Spotify API is first looked up in the local dataset. If a match is found, its features are used for prediction.
+4.  **Result Display:** The model's prediction and the song's actual popularity score on Spotify are presented comparatively to the user."""},
+    'tab2_dev_header': {'TR': "Geliştirici", 'EN': "Developer"},
+    'tab2_dev_text': {'TR': "Süleyman Toklu - Isparta Uygulamalı Bilimler Üniversitesi, Bilgisayar Mühendisliği", 'EN': "Süleyman Toklu - Isparta University of Applied Sciences, Computer Engineering"}
 }
 
 st.session_state.setdefault('tracks', [])
@@ -79,7 +100,7 @@ def load_local_dataset():
 model, model_features = load_model_and_features()
 local_df = load_local_dataset()
 
-col_title, col_lang = st.columns([10, 1])
+col_title, col_lang = st.columns([12, 1])
 with col_title:
     st.title(texts['main_title'][lang])
 with col_lang:
@@ -148,13 +169,8 @@ with tab1:
         with st.container(border=True):
             st.subheader(texts['prediction_header'][lang].format(track_name=track_name))
             
-            match = local_df[
-                (local_df['track_name'].str.lower() == track_name.lower()) &
-                (local_df['artist_name'].str.lower() == artist_name.lower())
-            ]
-
-            if not match.empty:
-                song_features = match.iloc[0]
+            if 'source' in track and track['source'] == 'local':
+                song_features = track['features']
                 input_df = pd.DataFrame([song_features])
                 input_df = input_df[model_features]
                 prediction = model.predict(input_df)
@@ -166,9 +182,27 @@ with tab1:
                 col_real.metric(label=texts['metric_real'][lang], value=track['popularity'])
                 col_real.progress(track['popularity'])
             else:
-                st.warning(texts['not_in_dataset_warning'][lang])
-                st.metric(label=texts['metric_real'][lang], value=track['popularity'])
-                st.progress(track['popularity'])
+                match = local_df[
+                    (local_df['track_name'].str.lower() == track_name.lower()) &
+                    (local_df['artist_name'].str.lower() == artist_name.lower())
+                ]
+
+                if not match.empty:
+                    song_features = match.iloc[0]
+                    input_df = pd.DataFrame([song_features])
+                    input_df = input_df[model_features]
+                    prediction = model.predict(input_df)
+                    popularity_score = int(prediction[0])
+
+                    col_pred, col_real = st.columns(2)
+                    col_pred.metric(label=texts['metric_prediction'][lang], value=popularity_score)
+                    col_pred.progress(popularity_score)
+                    col_real.metric(label=texts['metric_real'][lang], value=track['popularity'])
+                    col_real.progress(track['popularity'])
+                else:
+                    st.warning(texts['not_in_dataset_warning'][lang])
+                    st.metric(label=texts['metric_real'][lang], value=track['popularity'])
+                    st.progress(track['popularity'])
 
             if st.button(texts['close_button'][lang]):
                 st.session_state.selected_track = None
@@ -192,7 +226,9 @@ with tab1:
                     mock_track = {
                         'name': row['track_name'],
                         'artists': [{'name': row['artist_name']}],
-                        'popularity': row['popularity']
+                        'popularity': row['popularity'],
+                        'source': 'local',
+                        'features': row.to_dict()
                     }
                     st.session_state.selected_track = mock_track
                     st.rerun()
@@ -229,7 +265,14 @@ with tab1:
                 st.divider()
 
 with tab2:
-    st.header(texts['tab2_header'][lang])
-    st.write(texts['tab2_text'][lang])
-    with st.expander(texts['expander_title'][lang]):
-        st.markdown(texts['expander_text'][lang])
+    st.subheader(texts['tab2_summary_header'][lang])
+    st.write(texts['tab2_summary_text'][lang])
+    st.divider()
+    st.subheader(texts['tab2_tech_header'][lang])
+    st.write(texts['tab2_tech_text'][lang])
+    st.divider()
+    st.subheader(texts['tab2_how_header'][lang])
+    st.write(texts['tab2_how_text'][lang])
+    st.divider()
+    st.subheader(texts['tab2_dev_header'][lang])
+    st.write(texts['tab2_dev_text'][lang])
