@@ -113,28 +113,13 @@ with tab1:
             if search_button and search_query:
                 results = sp.search(q=search_query, type='track', limit=10)
                 st.session_state.tracks = results['tracks']['items']
-                st.session_state.selected_track = None
+                st.session_state.selected_track = None 
             
-            if st.session_state.tracks:
-                st.subheader(texts['search_results_header'][lang])
-                for track in st.session_state.tracks:
-                    col1, col2, col3 = st.columns([1, 4, 2])
-                    with col1:
-                        if track['album']['images']:
-                            st.image(track['album']['images'][0]['url'], width=64)
-                    with col2:
-                        st.write(f"**{track['name']}**")
-                        st.write(f"{texts['artist_label'][lang]}: {', '.join(artist['name'] for artist in track['artists'])}")
-                    with col3:
-                        if st.button(texts['predict_button'][lang], key=track['id']):
-                            st.session_state.selected_track = track
-                            st.rerun()
-                st.divider()
-
             if st.session_state.selected_track:
                 track = st.session_state.selected_track
                 
-                with st.dialog(texts['prediction_header'][lang].format(track_name=track['name'])):
+                with st.container(border=True):
+                    st.subheader(texts['prediction_header'][lang].format(track_name=track['name']))
                     audio_features = sp.audio_features(track['id'])[0]
                     
                     if audio_features:
@@ -159,9 +144,25 @@ with tab1:
                     else:
                         st.error(texts['audio_features_error'][lang])
 
-                    if st.button(texts['close_button'][lang]):
+                    if st.button(texts['close_button'][lang], key="close_prediction"):
                         st.session_state.selected_track = None
                         st.rerun()
+
+            elif st.session_state.tracks:
+                st.subheader(texts['search_results_header'][lang])
+                for track in st.session_state.tracks:
+                    col1, col2, col3 = st.columns([1, 4, 2])
+                    with col1:
+                        if track['album']['images']:
+                            st.image(track['album']['images'][0]['url'], width=64)
+                    with col2:
+                        st.write(f"**{track['name']}**")
+                        st.write(f"{texts['artist_label'][lang]}: {', '.join(artist['name'] for artist in track['artists'])}")
+                    with col3:
+                        if st.button(texts['predict_button'][lang], key=track['id']):
+                            st.session_state.selected_track = track
+                            st.rerun()
+                st.divider()
 
         except Exception as e:
             error_message = str(e)
