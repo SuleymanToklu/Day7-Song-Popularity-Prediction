@@ -10,6 +10,7 @@ import re
 
 warnings.filterwarnings("ignore")
 
+# Metinler ve diğer kısımlar aynı kalıyor...
 texts = {
     'page_title': {'TR': 'Şarkı Popülerliği Tahmini', 'EN': 'Song Popularity Prediction'},
     'main_title': {'TR': '🎵 Şarkı Popülerliği Tahmincisi', 'EN': '🎵 Song Popularity Predictor'},
@@ -84,7 +85,7 @@ def load_local_dataset():
         df = pd.read_csv('SpotifyFeatures.csv')
         model_features_list = [
             'danceability', 'energy', 'loudness',
-            'speechiness', 'acousticness', 'instrumentalness', 
+            'speechiness', 'acousticness', 'instrumentalness',
             'liveness', 'valence', 'tempo', 'duration_ms'
         ]
         df['track_name'] = df['track_name'].astype(str).str.strip()
@@ -120,8 +121,8 @@ with col_title:
     st.title(texts['main_title'][lang])
 with col_lang:
     st.selectbox(
-        label=texts['language_label'][lang], 
-        options=['TR', 'EN'], 
+        label=texts['language_label'][lang],
+        options=['TR', 'EN'],
         key='lang',
         label_visibility="collapsed"
     )
@@ -129,6 +130,7 @@ with col_lang:
 if not model or not model_features or local_df is None:
     st.error(texts['model_error'][lang])
     st.stop()
+
 
 def get_spotify_token(client_id, client_secret):
     auth_string = f"{client_id}:{client_secret}"
@@ -146,6 +148,7 @@ def get_spotify_token(client_id, client_secret):
 def is_token_valid():
     return st.session_state.access_token and time.time() < st.session_state.token_expires
 
+
 def spotify_search(query, token):
     url = "https://api.spotify.com/v1/search"
     headers = {"Authorization": f"Bearer {token}"}
@@ -153,6 +156,7 @@ def spotify_search(query, token):
     result = requests.get(url, headers=headers, params=params)
     result.raise_for_status()
     return result.json()
+
 
 def get_audio_features(track_id, token):
     url = f"https://api.spotify.com/v1/audio-features//{track_id}"
@@ -202,17 +206,17 @@ with tab1:
 
             if song_features:
                 input_df = pd.DataFrame([song_features])
+                
                 if not all(feature in input_df.columns for feature in model_features):
                     st.error("Gelen veride gerekli özellik sütunları eksik. Tahmin yapılamıyor.")
                 else:
                     input_df = input_df[model_features]
+
                     for col in model_features:
                         input_df[col] = pd.to_numeric(input_df[col], errors='coerce')
 
                     if input_df.isnull().sum().sum() > 0:
                         st.error("Şarkı özellikleri sayısal veriye dönüştürülürken bir sorun oluştu. Lütfen başka bir şarkı deneyin.")
-                        st.write("Sorunlu olabilecek veriler:")
-                        st.write(input_df)
                     else:
                         prediction = model.predict(input_df)
                         popularity_score = int(prediction[0])
@@ -240,7 +244,7 @@ with tab1:
                 with col2:
                     if st.button(texts['predict_button'][lang], key=f"suggest_{i}"):
                         mock_track = {
-                            'id': row['track_id'],
+                            'id': row.get('track_id', None),
                             'name': row['track_name'],
                             'artists': [{'name': row['artist_name']}],
                             'popularity': row['popularity'],
