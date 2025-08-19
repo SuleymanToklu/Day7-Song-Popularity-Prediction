@@ -61,6 +61,12 @@ def load_model_and_features():
 def load_local_dataset():
     try:
         df = pd.read_csv('SpotifyFeatures.csv')
+        # Apply the same cleaning as in train_model.py to prevent dtype errors
+        cols_to_convert = ['key', 'mode', 'time_signature']
+        for col in cols_to_convert:
+            df[col] = pd.to_numeric(df[col], errors='coerce')
+        df.dropna(subset=cols_to_convert, inplace=True)
+        df[cols_to_convert] = df[cols_to_convert].astype(int)
         return df
     except FileNotFoundError:
         return None
@@ -68,7 +74,7 @@ def load_local_dataset():
 model, model_features = load_model_and_features()
 local_df = load_local_dataset()
 
-col_title, col_lang = st.columns([6, 1])
+col_title, col_lang = st.columns([8, 1])
 with col_title:
     st.title(texts['main_title'][lang])
 with col_lang:
@@ -199,7 +205,7 @@ with tab1:
                     results = spotify_search(search_query, st.session_state.access_token)
                     st.session_state.tracks = results['tracks']['items']
                 except Exception as e:
-                    st.toast(f"Arama Hatası: {e}", icon='🚨')
+                    st.toast(f"Arama Hatası: {e}", icon='�')
 
             if st.session_state.tracks:
                 st.subheader(texts['search_results_header'][lang])
