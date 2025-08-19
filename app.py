@@ -83,6 +83,9 @@ def load_model_and_features():
 def load_local_dataset():
     try:
         df = pd.read_csv('SpotifyFeatures.csv')
+        
+        st.write(f"CSV dosyasından okunan ilk satır sayısı: {len(df)}")
+        
         model_features_list = [
             'danceability', 'energy', 'key', 'loudness', 'mode', 
             'speechiness', 'acousticness', 'instrumentalness', 
@@ -92,10 +95,14 @@ def load_local_dataset():
         df['artist_name'] = df['artist_name'].astype(str).str.strip()
         for col in model_features_list:
             df[col] = pd.to_numeric(df[col], errors='coerce')
+        
         df.dropna(subset=model_features_list, inplace=True)
+        st.write(f"Eksik veriler temizlendikten sonra kalan satır sayısı: {len(df)}")
+        
         df.reset_index(drop=True, inplace=True)
         return df
     except FileNotFoundError:
+        st.error("SpotifyFeatures.csv dosyası bulunamadı!")
         return None
 
 def get_safe_sample(df, n):
