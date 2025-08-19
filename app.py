@@ -21,7 +21,7 @@ texts = {
     'tab2_title': {'TR': "🎯 Proje Detayları", 'EN': "🎯 Project Details"},
 
     'tab1_header': {'TR': "Spotify'da Şarkı Arayarak Popülerlik Tahmin Et", 'EN': "Predict Popularity by Searching on Spotify"},
-    'tab1_api_warning': {'TR': "Uygulamanın bu özelliği kullanabilmesi için Spotify API bilgilerinin ayarlanmış olması gerekmektedir.", 'EN': "Spotify API credentials must be configured to use this feature."},
+    'tab1_api_warning': {'TR': "Spotify API bağlantısı kurulamadı. Lütfen sol menüdeki durumu kontrol edin ve API bilgilerinizi doğrulayın.", 'EN': "Could not connect to Spotify API. Please check the status in the left sidebar and verify your API credentials."},
     'search_form_label': {'TR': "Şarkı Adı ve/veya Sanatçı", 'EN': "Song Name and/or Artist"},
     'search_button': {'TR': 'Ara', 'EN': 'Search'},
     'search_results_header': {'TR': "Arama Sonuçları", 'EN': "Search Results"},
@@ -113,7 +113,7 @@ with tab1:
             if search_button and search_query:
                 results = sp.search(q=search_query, type='track', limit=10)
                 st.session_state.tracks = results['tracks']['items']
-                st.session_state.selected_track = None 
+                st.session_state.selected_track = None
             
             if st.session_state.selected_track:
                 track = st.session_state.selected_track
