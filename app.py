@@ -155,7 +155,7 @@ def spotify_search(query, token):
     return result.json()
 
 def get_audio_features(track_id, token):
-    url = f"http://googleusercontent.com/spotify.com/2/{track_id}"
+    url = f"https://api.spotify.com/v1/audio-features//{track_id}"
     headers = {"Authorization": f"Bearer {token}"}
     result = requests.get(url, headers=headers)
     result.raise_for_status()
