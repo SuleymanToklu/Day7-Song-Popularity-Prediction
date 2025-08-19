@@ -29,7 +29,6 @@ texts = {
     'prediction_header': {'TR': "🔮 '{track_name}' için Tahmin Sonucu", 'EN': "🔮 Prediction Result for '{track_name}'"},
     'metric_prediction': {'TR': "Modelin Tahmini Popülerlik Puanı", 'EN': "Model's Predicted Popularity Score"},
     'metric_real': {'TR': "Gerçek Spotify Popülerlik Puanı", 'EN': "Actual Spotify Popularity Score"},
-    'not_in_dataset_warning': {'TR': "Bu şarkı modelimizin eğitildiği veri setinde bulunamadı. Bu yüzden özel bir tahmin yapılamıyor.", 'EN': "This song was not found in the dataset our model was trained on. Therefore, a custom prediction cannot be made."},
     'close_button': {'TR': 'Kapat', 'EN': 'Close'},
     'tab2_summary_header': {'TR': "Proje Özeti", 'EN': "Project Summary"},
     'tab2_summary_text': {'TR': "Bu uygulama, bir şarkının ses özelliklerini (dans edilebilirlik, enerji, tempo vb.) kullanarak o şarkının Spotify'daki popülerlik puanını (0-100 arası) tahmin etmek için geliştirilmiş bir makine öğrenmesi projesidir. Kullanıcılar, veri setinden önerilen şarkıları analiz edebilir veya Spotify API aracılığıyla yeni şarkılar arayarak hem modelin tahminini hem de şarkının gerçek popülerlik puanını karşılaştırabilir.", 'EN': "This application is a machine learning project developed to predict a song's popularity score (0-100) on Spotify using its audio features (danceability, energy, tempo, etc.). Users can analyze suggested songs from the dataset or search for new songs via the Spotify API to compare the model's prediction with the song's actual popularity score."},
@@ -46,14 +45,14 @@ texts = {
 1.  **Model Eğitimi:** Proje, `train_model.py` scripti ile `SpotifyFeatures.csv` veri setini kullanarak bir XGBoost regresyon modelini eğitir ve `model.pkl` olarak kaydeder.
 2.  **Veri Yükleme:** Streamlit uygulaması, bu eğitilmiş modeli ve tahmin için kullanılacak yerel veri setini başlangıçta yükler.
 3.  **Tahminleme:**
-    - **Önerilen Şarkılar:** Veri setinden rastgele seçilen şarkıların özellikleri doğrudan modele verilir.
-    - **API Araması:** Spotify API'den aranan bir şarkı, önce yerel veri setinde aranır. Eşleşme bulunursa, o şarkının özellikleri tahmin için kullanılır.
+    - **Veri Seti:** Veri setindeki şarkıların özellikleri doğrudan modele verilir.
+    - **API Araması:** Spotify API'den aranan bir şarkının ses özellikleri (`audio features`) anlık olarak çekilir ve model bu canlı veri ile tahmin yapar.
 4.  **Sonuç Gösterimi:** Modelin tahmini ve şarkının Spotify'daki gerçek popülerlik puanı karşılaştırmalı olarak kullanıcıya sunulur.""", 'EN': """
 1.  **Model Training:** The project trains an XGBoost regression model using the `SpotifyFeatures.csv` dataset with the `train_model.py` script and saves it as `model.pkl`.
 2.  **Data Loading:** The Streamlit application loads this pre-trained model and the local dataset for predictions at startup.
 3.  **Prediction:**
-    - **Suggested Songs:** Features of randomly selected songs from the dataset are directly fed into the model.
-    - **API Search:** A song searched via the Spotify API is first looked up in the local dataset. If a match is found, its features are used for prediction.
+    - **From Dataset:** Features of songs from the dataset are directly fed into the model.
+    - **API Search:** Audio features of a song searched via the Spotify API are fetched in real-time, and the model predicts using this live data.
 4.  **Result Display:** The model's prediction and the song's actual popularity score on Spotify are presented comparatively to the user."""},
     'tab2_dev_header': {'TR': "Geliştirici", 'EN': "Developer"},
     'tab2_dev_text': {'TR': "Süleyman Toklu - Isparta Uygulamalı Bilimler Üniversitesi, Bilgisayar Mühendisliği", 'EN': "Süleyman Toklu - Isparta University of Applied Sciences, Computer Engineering"}
@@ -83,28 +82,20 @@ def load_model_and_features():
 def load_local_dataset():
     try:
         df = pd.read_csv('SpotifyFeatures.csv')
-        
         model_features_list = [
-            'danceability', 'energy', 'key', 'loudness', 'mode', 
+            'danceability', 'energy', 'loudness',
             'speechiness', 'acousticness', 'instrumentalness', 
-            'liveness', 'valence', 'tempo', 'duration_ms', 'time_signature'
+            'liveness', 'valence', 'tempo', 'duration_ms'
         ]
-        
         df['track_name'] = df['track_name'].astype(str).str.strip()
         df['artist_name'] = df['artist_name'].astype(str).str.strip()
-        
         for col in model_features_list:
-            df[col] = pd.to_numeric(df[col], errors='coerce')
-        
-        st.subheader("Sütunlardaki Eksik Veri Sayıları (NaN)")
-        missing_values = df[model_features_list].isnull().sum()
-        
-        st.dataframe(missing_values[missing_values > 0].sort_values(ascending=False))
-
+            if col in df.columns:
+                df[col] = pd.to_numeric(df[col], errors='coerce')
+        df.dropna(subset=model_features_list, inplace=True)
         df.reset_index(drop=True, inplace=True)
         return df
     except FileNotFoundError:
-        st.error("SpotifyFeatures.csv dosyası bulunamadı!")
         return None
 
 def get_safe_sample(df, n):
@@ -113,12 +104,6 @@ def get_safe_sample(df, n):
     if sample_size > 0:
         return df.sample(sample_size)
     return pd.DataFrame()
-
-def normalize_text(text):
-    text = text.lower()
-    text = re.sub(r"\(.*?\)", "", text)
-    text = re.sub(r"[^a-z0-9\s]", "", text)
-    return text.strip()
 
 def display_prediction_results(predicted_score, real_score):
     col_pred, col_real = st.columns(2)
@@ -169,6 +154,14 @@ def spotify_search(query, token):
     result.raise_for_status()
     return result.json()
 
+def get_audio_features(track_id, token):
+    url = f"http://googleusercontent.com/spotify.com/2/{track_id}"
+    headers = {"Authorization": f"Bearer {token}"}
+    result = requests.get(url, headers=headers)
+    result.raise_for_status()
+    return result.json()
+
+
 api_ready = False
 if not st.session_state.api_status_checked:
     try:
@@ -194,38 +187,25 @@ with tab1:
     if st.session_state.selected_track:
         track = st.session_state.selected_track
         track_name = track['name'].strip()
-        artist_name = track['artists'][0]['name'].strip()
-
+        
         with st.container(border=True):
             st.subheader(texts['prediction_header'][lang].format(track_name=track_name))
             
+            song_features = None
             if 'source' in track and track['source'] == 'local':
                 song_features = track['features']
+            else:
+                try:
+                    song_features = get_audio_features(track['id'], st.session_state.access_token)
+                except Exception as e:
+                    st.error(f"Şarkı özellikleri alınamadı: {e}")
+
+            if song_features:
                 input_df = pd.DataFrame([song_features])
                 input_df = input_df[model_features]
                 prediction = model.predict(input_df)
                 popularity_score = int(prediction[0])
                 display_prediction_results(popularity_score, track['popularity'])
-            else:
-                track_name_norm = normalize_text(track_name)
-                artist_name_norm = normalize_text(artist_name)
-                
-                match = local_df[
-                    (local_df['track_name'].apply(normalize_text) == track_name_norm) &
-                    (local_df['artist_name'].apply(normalize_text) == artist_name_norm)
-                ]
-
-                if not match.empty:
-                    song_features = match.iloc[0]
-                    input_df = pd.DataFrame([song_features])
-                    input_df = input_df[model_features]
-                    prediction = model.predict(input_df)
-                    popularity_score = int(prediction[0])
-                    display_prediction_results(popularity_score, track['popularity'])
-                else:
-                    st.warning(texts['not_in_dataset_warning'][lang])
-                    st.metric(label=texts['metric_real'][lang], value=track['popularity'])
-                    st.progress(track['popularity'])
 
             if st.button(texts['close_button'][lang]):
                 st.session_state.selected_track = None
@@ -249,6 +229,7 @@ with tab1:
                 with col2:
                     if st.button(texts['predict_button'][lang], key=f"suggest_{i}"):
                         mock_track = {
+                            'id': row['track_id'],
                             'name': row['track_name'],
                             'artists': [{'name': row['artist_name']}],
                             'popularity': row['popularity'],
