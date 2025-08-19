@@ -202,11 +202,21 @@ with tab1:
 
             if song_features:
                 input_df = pd.DataFrame([song_features])
-                input_df = input_df[model_features]
-                input_df = input_df.astype(float)
-                prediction = model.predict(input_df)
-                popularity_score = int(prediction[0])
-                display_prediction_results(popularity_score, track['popularity'])
+                if not all(feature in input_df.columns for feature in model_features):
+                    st.error("Gelen veride gerekli özellik sütunları eksik. Tahmin yapılamıyor.")
+                else:
+                    input_df = input_df[model_features]
+                    for col in model_features:
+                        input_df[col] = pd.to_numeric(input_df[col], errors='coerce')
+
+                    if input_df.isnull().sum().sum() > 0:
+                        st.error("Şarkı özellikleri sayısal veriye dönüştürülürken bir sorun oluştu. Lütfen başka bir şarkı deneyin.")
+                        st.write("Sorunlu olabilecek veriler:")
+                        st.write(input_df)
+                    else:
+                        prediction = model.predict(input_df)
+                        popularity_score = int(prediction[0])
+                        display_prediction_results(popularity_score, track['popularity'])
 
             if st.button(texts['close_button'][lang]):
                 st.session_state.selected_track = None
