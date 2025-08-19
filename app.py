@@ -66,11 +66,13 @@ def load_local_dataset():
             'speechiness', 'acousticness', 'instrumentalness', 
             'liveness', 'valence', 'tempo', 'duration_ms', 'time_signature'
         ]
+        # Robust data cleaning
         df['track_name'] = df['track_name'].astype(str).str.strip()
         df['artist_name'] = df['artist_name'].astype(str).str.strip()
         for col in model_features_list:
             df[col] = pd.to_numeric(df[col], errors='coerce')
         df.dropna(subset=model_features_list, inplace=True)
+        # Reset index to prevent sampling errors
         df.reset_index(drop=True, inplace=True)
         return df
     except FileNotFoundError:
@@ -79,7 +81,7 @@ def load_local_dataset():
 model, model_features = load_model_and_features()
 local_df = load_local_dataset()
 
-col_title, col_lang = st.columns([8, 1])
+col_title, col_lang = st.columns([10, 1])
 with col_title:
     st.title(texts['main_title'][lang])
 with col_lang:
@@ -142,8 +144,8 @@ tab1, tab2 = st.tabs([f"🎤 **{texts['tab1_title'][lang]}**", f"🎯 **{texts['
 with tab1:
     if st.session_state.selected_track:
         track = st.session_state.selected_track
-        track_name = track['name']
-        artist_name = track['artists'][0]['name']
+        track_name = track['name'].strip()
+        artist_name = track['artists'][0]['name'].strip()
 
         with st.container(border=True):
             st.subheader(texts['prediction_header'][lang].format(track_name=track_name))
