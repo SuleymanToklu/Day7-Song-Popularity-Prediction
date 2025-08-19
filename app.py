@@ -66,13 +66,11 @@ def load_local_dataset():
             'speechiness', 'acousticness', 'instrumentalness', 
             'liveness', 'valence', 'tempo', 'duration_ms', 'time_signature'
         ]
-        # Robust data cleaning
         df['track_name'] = df['track_name'].astype(str).str.strip()
         df['artist_name'] = df['artist_name'].astype(str).str.strip()
         for col in model_features_list:
             df[col] = pd.to_numeric(df[col], errors='coerce')
         df.dropna(subset=model_features_list, inplace=True)
-        # Reset index to prevent sampling errors
         df.reset_index(drop=True, inplace=True)
         return df
     except FileNotFoundError:
