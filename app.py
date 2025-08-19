@@ -5,13 +5,14 @@ import requests
 import base64
 import time
 import warnings
+import os
 
 warnings.filterwarnings("ignore")
 
 texts = {
     'page_title': {'TR': 'Şarkı Popülerliği Tahmini', 'EN': 'Song Popularity Prediction'},
     'main_title': {'TR': '🎵 Şarkı Popülerliği Tahmincisi', 'EN': '🎵 Song Popularity Predictor'},
-    'model_error': {'TR': "Gerekli model dosyaları bulunamadı. Lütfen önce `train_model.py` script'ini çalıştırdığınızdan emin olun.", 'EN': "Required model files not found. Please make sure you have run the `train_model.py` script first."},
+    'model_error': {'TR': "Gerekli model dosyaları bulunamadı. Lütfen önce train_model.py script'ini çalıştırdığınızdan emin olun.", 'EN': "Required model files not found. Please make sure you have run the `train_model.py` script first."},
     'language_label': {'TR': 'Dil / Language', 'EN': 'Language / Dil'},
     'sidebar_api_status': {'TR': "Spotify API Durumu", 'EN': "Spotify API Status"},
     'sidebar_api_success': {'TR': "Bağlantı hazır! ✅", 'EN': "Connection ready! ✅"},
