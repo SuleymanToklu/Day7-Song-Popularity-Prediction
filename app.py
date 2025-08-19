@@ -61,11 +61,17 @@ def load_model_and_features():
 def load_local_dataset():
     try:
         df = pd.read_csv('SpotifyFeatures.csv')
-        cols_to_convert = ['key', 'mode', 'time_signature']
-        for col in cols_to_convert:
+        model_features_list = [
+            'danceability', 'energy', 'key', 'loudness', 'mode', 
+            'speechiness', 'acousticness', 'instrumentalness', 
+            'liveness', 'valence', 'tempo', 'duration_ms', 'time_signature'
+        ]
+        df['track_name'] = df['track_name'].astype(str).str.strip()
+        df['artist_name'] = df['artist_name'].astype(str).str.strip()
+        for col in model_features_list:
             df[col] = pd.to_numeric(df[col], errors='coerce')
-        df.dropna(subset=cols_to_convert, inplace=True)
-        df[cols_to_convert] = df[cols_to_convert].astype(int)
+        df.dropna(subset=model_features_list, inplace=True)
+        df.reset_index(drop=True, inplace=True)
         return df
     except FileNotFoundError:
         return None
