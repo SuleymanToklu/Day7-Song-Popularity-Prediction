@@ -1,9 +1,6 @@
 # Streamlit Secrets - API Anahtarlarını gizli tutar
 .streamlit/secrets.toml
 
-# Büyük Veri Seti - Uygulamanın çalışması için gerekli değil
-SpotifyFeatures.csv
-
 # Python Cache ve Sanal Ortam Dosyaları
 __pycache__/
 *.pyc
