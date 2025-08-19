@@ -61,7 +61,6 @@ def load_model_and_features():
 def load_local_dataset():
     try:
         df = pd.read_csv('SpotifyFeatures.csv')
-        # Apply the same cleaning as in train_model.py to prevent dtype errors
         cols_to_convert = ['key', 'mode', 'time_signature']
         for col in cols_to_convert:
             df[col] = pd.to_numeric(df[col], errors='coerce')
@@ -151,7 +150,7 @@ with tab1:
             if not match.empty:
                 song_features = match.iloc[0]
                 input_df = pd.DataFrame([song_features])
-                input_df = input_df[model_features] # Ensure correct column order
+                input_df = input_df[model_features]
                 prediction = model.predict(input_df)
                 popularity_score = int(prediction[0])
 
@@ -205,7 +204,7 @@ with tab1:
                     results = spotify_search(search_query, st.session_state.access_token)
                     st.session_state.tracks = results['tracks']['items']
                 except Exception as e:
-                    st.toast(f"Arama Hatası: {e}", icon='�')
+                    st.toast(f"Arama Hatası: {e}", icon='🚨')
 
             if st.session_state.tracks:
                 st.subheader(texts['search_results_header'][lang])
