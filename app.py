@@ -12,17 +12,14 @@ texts = {
     'main_title': {'TR': '🎵 Şarkı Popülerliği Tahmincisi', 'EN': '🎵 Song Popularity Predictor'},
     'model_error': {'TR': "Gerekli model dosyaları bulunamadı. Lütfen önce `train_model.py` script'ini çalıştırdığınızdan emin olun.", 'EN': "Required model files not found. Please make sure you have run the `train_model.py` script first."},
 
-    # Sidebar
     'language_label': {'TR': 'Dil / Language', 'EN': 'Language / Dil'},
     'sidebar_api_success': {'TR': "Spotify API bağlantısı başarılı! ✅", 'EN': "Spotify API connection successful! ✅"},
     'sidebar_api_error': {'TR': "Spotify API bilgileri bulunamadı!", 'EN': "Spotify API credentials not found!"},
     'sidebar_api_info': {'TR': "Bu uygulamayı yayınlamak için Streamlit Community Cloud'un ayarlar bölümüne API bilgilerinizi eklemeniz gerekir.", 'EN': "To deploy this app, you need to add your API credentials to the settings in Streamlit Community Cloud."},
 
-    # Tabs
     'tab1_title': {'TR': "🎤 Spotify'dan Şarkı Ara", 'EN': "🎤 Search Song on Spotify"},
     'tab2_title': {'TR': "🎯 Proje Detayları", 'EN': "🎯 Project Details"},
 
-    # Tab 1: Search
     'tab1_header': {'TR': "Spotify'da Şarkı Arayarak Popülerlik Tahmin Et", 'EN': "Predict Popularity by Searching on Spotify"},
     'tab1_api_warning': {'TR': "Uygulamanın bu özelliği kullanabilmesi için Spotify API bilgilerinin ayarlanmış olması gerekmektedir.", 'EN': "Spotify API credentials must be configured to use this feature."},
     'search_form_label': {'TR': "Şarkı Adı ve/veya Sanatçı", 'EN': "Song Name and/or Artist"},
@@ -39,6 +36,7 @@ texts = {
     'audio_features_error': {'TR': "Bu şarkının ses özellikleri alınamadı.", 'EN': "Could not retrieve audio features for this song."},
     'api_error_403': {'TR': "API Hatası (403 Forbidden): Spotify isteği reddetti. Lütfen Streamlit Secrets'a eklediğiniz bilgileri kontrol edin.", 'EN': "API Error (403 Forbidden): Spotify rejected the request. Please check the credentials you added to Streamlit Secrets."},
     'api_error_generic': {'TR': "Bir hata oluştu. API bağlantısı kurulamadı. Hata: {e}", 'EN': "An error occurred. Could not connect to the API. Error: {e}"},
+    'close_button': {'TR': 'Kapat', 'EN': 'Close'},
 
     'tab2_header': {'TR': "Projenin Amacı ve Teknik Detaylar", 'EN': "Project Goal and Technical Details"},
     'tab2_text': {'TR': """Bu projenin amacı, bir şarkının Spotify'daki popülerliğini, Spotify API tarafından sağlanan ses özelliklerine göre tahmin etmektir. \n- **Model:** `XGBoost Regressor`\n- **Veri Seti:** Spotify Features (Kaggle) & Live Spotify API""", 'EN': """The goal of this project is to predict the popularity of a song on Spotify based on its audio features provided by the Spotify API. \n- **Model:** `XGBoost Regressor`\n- **Dataset:** Spotify Features (Kaggle) & Live Spotify API"""},
@@ -56,7 +54,7 @@ if 'lang' not in st.session_state:
 st.sidebar.selectbox(
     label=texts['language_label'][st.session_state.lang],
     options=['TR', 'EN'],
-    key='lang' 
+    key='lang'
 )
 lang = st.session_state.lang
 
@@ -68,7 +66,6 @@ st.set_page_config(
 
 @st.cache_resource
 def load_resources():
-    """Loads the trained model and the list of features."""
     try:
         model = joblib.load('model.pkl')
         model_features = joblib.load('model_features.pkl')
@@ -103,7 +100,7 @@ with tab1:
     st.header(texts['tab1_header'][lang])
     
     if not client_id or not client_secret:
-        st.warning(texts['tab1_api_warning'][lang])
+        st.toast(texts['tab1_api_warning'][lang], icon='⚠️')
     else:
         try:
             client_credentials_manager = SpotifyClientCredentials(client_id=client_id, client_secret=client_secret)
@@ -136,36 +133,42 @@ with tab1:
 
             if st.session_state.selected_track:
                 track = st.session_state.selected_track
-                audio_features = sp.audio_features(track['id'])[0]
                 
-                if audio_features:
-                    input_dict = {k: audio_features.get(k) for k in model_features}
-                    input_df = pd.DataFrame([input_dict])[model_features]
-                    prediction = model.predict(input_df)
-                    popularity_score = int(prediction[0])
+                with st.dialog(texts['prediction_header'][lang].format(track_name=track['name'])):
+                    audio_features = sp.audio_features(track['id'])[0]
+                    
+                    if audio_features:
+                        input_dict = {k: audio_features.get(k) for k in model_features}
+                        input_df = pd.DataFrame([input_dict])[model_features]
+                        prediction = model.predict(input_df)
+                        popularity_score = int(prediction[0])
 
-                    st.subheader(texts['prediction_header'][lang].format(track_name=track['name']))
-                    col_pred, col_real = st.columns(2)
-                    col_pred.metric(label=texts['metric_prediction'][lang], value=popularity_score)
-                    col_pred.progress(popularity_score)
-                    col_real.metric(label=texts['metric_real'][lang], value=track['popularity'])
-                    col_real.progress(track['popularity'])
+                        col_pred, col_real = st.columns(2)
+                        col_pred.metric(label=texts['metric_prediction'][lang], value=popularity_score)
+                        col_pred.progress(popularity_score)
+                        
+                        col_real.metric(label=texts['metric_real'][lang], value=track['popularity'])
+                        col_real.progress(track['popularity'])
 
-                    if popularity_score > 80:
-                        st.success(texts['feedback_hit'][lang])
-                    elif popularity_score > 60:
-                        st.info(texts['feedback_popular'][lang])
+                        if popularity_score > 80:
+                            st.success(texts['feedback_hit'][lang])
+                        elif popularity_score > 60:
+                            st.info(texts['feedback_popular'][lang])
+                        else:
+                            st.warning(texts['feedback_niche'][lang])
                     else:
-                        st.warning(texts['feedback_niche'][lang])
-                else:
-                    st.error(texts['audio_features_error'][lang])
+                        st.error(texts['audio_features_error'][lang])
+
+                    if st.button(texts['close_button'][lang]):
+                        st.session_state.selected_track = None
+                        st.rerun()
 
         except Exception as e:
             error_message = str(e)
-            if "403" in error_message:
-                st.error(texts['api_error_403'][lang])
+            if "403" in error_message or "Forbidden" in error_message:
+                st.toast(texts['api_error_403'][lang], icon='🚨')
             else:
-                st.error(texts['api_error_generic'][lang].format(e=e))
+                st.toast(texts['api_error_generic'][lang].format(e=e), icon='🚨')
 
 with tab2:
     st.header(texts['tab2_header'][lang])
