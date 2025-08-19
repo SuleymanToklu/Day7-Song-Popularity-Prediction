@@ -6,6 +6,7 @@ import base64
 import time
 import warnings
 import os
+import re
 
 warnings.filterwarnings("ignore")
 
@@ -97,6 +98,26 @@ def load_local_dataset():
     except FileNotFoundError:
         return None
 
+def get_safe_sample(df, n):
+    num_rows = len(df)
+    sample_size = min(n, num_rows)
+    if sample_size > 0:
+        return df.sample(sample_size)
+    return pd.DataFrame()
+
+def normalize_text(text):
+    text = text.lower()
+    text = re.sub(r"\(.*?\)", "", text)
+    text = re.sub(r"[^a-z0-9\s]", "", text)
+    return text.strip()
+
+def display_prediction_results(predicted_score, real_score):
+    col_pred, col_real = st.columns(2)
+    col_pred.metric(label=texts['metric_prediction'][lang], value=predicted_score)
+    col_pred.progress(predicted_score)
+    col_real.metric(label=texts['metric_real'][lang], value=real_score)
+    col_real.progress(real_score)
+
 model, model_features = load_model_and_features()
 local_df = load_local_dataset()
 
@@ -156,7 +177,7 @@ else:
     api_ready = is_token_valid()
 
 if st.session_state.suggestions is None:
-    st.session_state.suggestions = local_df.sample(5)
+    st.session_state.suggestions = get_safe_sample(local_df, 5)
 
 tab1, tab2 = st.tabs([f"🎤 **{texts['tab1_title'][lang]}**", f"🎯 **{texts['tab2_title'][lang]}**"])
 
@@ -175,16 +196,14 @@ with tab1:
                 input_df = input_df[model_features]
                 prediction = model.predict(input_df)
                 popularity_score = int(prediction[0])
-
-                col_pred, col_real = st.columns(2)
-                col_pred.metric(label=texts['metric_prediction'][lang], value=popularity_score)
-                col_pred.progress(popularity_score)
-                col_real.metric(label=texts['metric_real'][lang], value=track['popularity'])
-                col_real.progress(track['popularity'])
+                display_prediction_results(popularity_score, track['popularity'])
             else:
+                track_name_norm = normalize_text(track_name)
+                artist_name_norm = normalize_text(artist_name)
+                
                 match = local_df[
-                    (local_df['track_name'].str.lower() == track_name.lower()) &
-                    (local_df['artist_name'].str.lower() == artist_name.lower())
+                    (local_df['track_name'].apply(normalize_text) == track_name_norm) &
+                    (local_df['artist_name'].apply(normalize_text) == artist_name_norm)
                 ]
 
                 if not match.empty:
@@ -193,12 +212,7 @@ with tab1:
                     input_df = input_df[model_features]
                     prediction = model.predict(input_df)
                     popularity_score = int(prediction[0])
-
-                    col_pred, col_real = st.columns(2)
-                    col_pred.metric(label=texts['metric_prediction'][lang], value=popularity_score)
-                    col_pred.progress(popularity_score)
-                    col_real.metric(label=texts['metric_real'][lang], value=track['popularity'])
-                    col_real.progress(track['popularity'])
+                    display_prediction_results(popularity_score, track['popularity'])
                 else:
                     st.warning(texts['not_in_dataset_warning'][lang])
                     st.metric(label=texts['metric_real'][lang], value=track['popularity'])
@@ -206,6 +220,7 @@ with tab1:
 
             if st.button(texts['close_button'][lang]):
                 st.session_state.selected_track = None
+                st.session_state.tracks = []
                 st.rerun()
     else:
         col_header, col_button = st.columns([4, 1])
@@ -213,25 +228,26 @@ with tab1:
             st.subheader(texts['suggestions_header'][lang])
         with col_button:
             if st.button(texts['refresh_button'][lang]):
-                st.session_state.suggestions = local_df.sample(5)
+                st.session_state.suggestions = get_safe_sample(local_df, 5)
                 st.rerun()
 
         suggestions = st.session_state.suggestions
-        for i, row in suggestions.iterrows():
-            col1, col2 = st.columns([4, 1])
-            with col1:
-                st.write(f"**{row['track_name']}** - {row['artist_name']}")
-            with col2:
-                if st.button(texts['predict_button'][lang], key=f"suggest_{i}"):
-                    mock_track = {
-                        'name': row['track_name'],
-                        'artists': [{'name': row['artist_name']}],
-                        'popularity': row['popularity'],
-                        'source': 'local',
-                        'features': row.to_dict()
-                    }
-                    st.session_state.selected_track = mock_track
-                    st.rerun()
+        if not suggestions.empty:
+            for i, row in suggestions.iterrows():
+                col1, col2 = st.columns([4, 1])
+                with col1:
+                    st.write(f"**{row['track_name']}** - {row['artist_name']}")
+                with col2:
+                    if st.button(texts['predict_button'][lang], key=f"suggest_{i}"):
+                        mock_track = {
+                            'name': row['track_name'],
+                            'artists': [{'name': row['artist_name']}],
+                            'popularity': row['popularity'],
+                            'source': 'local',
+                            'features': row.to_dict()
+                        }
+                        st.session_state.selected_track = mock_track
+                        st.rerun()
         st.divider()
 
         if not api_ready:
