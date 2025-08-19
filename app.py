@@ -42,7 +42,7 @@ st.session_state.setdefault('lang', 'TR')
 st.session_state.setdefault('access_token', None)
 st.session_state.setdefault('token_expires', 0)
 st.session_state.setdefault('api_status_checked', False)
-st.session_state.setdefault('suggestions', [])
+st.session_state.setdefault('suggestions', None)
 
 lang = st.session_state.lang
 st.set_page_config(page_title=texts['page_title'][lang], page_icon="🎵", layout="wide")
@@ -67,8 +67,7 @@ def load_local_dataset():
 model, model_features = load_model_and_features()
 local_df = load_local_dataset()
 
-# --- HEADER LAYOUT ---
-col_title, col_lang = st.columns([3, 1])
+col_title, col_lang = st.columns([5, 1])
 with col_title:
     st.title(texts['main_title'][lang])
 with col_lang:
@@ -76,7 +75,7 @@ with col_lang:
         label=texts['language_label'][lang], 
         options=['TR', 'EN'], 
         key='lang',
-        label_visibility="collapsed" # Hides the label, making it cleaner
+        label_visibility="collapsed"
     )
 
 if not model or not model_features or local_df is None:
@@ -123,7 +122,7 @@ if not st.session_state.api_status_checked:
 else:
     api_ready = is_token_valid()
 
-if not st.session_state.suggestions:
+if st.session_state.suggestions is None:
     st.session_state.suggestions = local_df.sample(5)
 
 tab1, tab2 = st.tabs([f"🎤 **{texts['tab1_title'][lang]}**", f"🎯 **{texts['tab2_title'][lang]}**"])
