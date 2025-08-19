@@ -203,6 +203,7 @@ with tab1:
             if song_features:
                 input_df = pd.DataFrame([song_features])
                 input_df = input_df[model_features]
+                input_df = input_df.astype(float)
                 prediction = model.predict(input_df)
                 popularity_score = int(prediction[0])
                 display_prediction_results(popularity_score, track['popularity'])
